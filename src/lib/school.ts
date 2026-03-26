@@ -46,10 +46,10 @@ export function toYmd(value: Date) {
  * 기본값은 중학교(middle)로 둔다.
  */
 export function detectSchoolLevel(schoolType: string): SchoolLevel {
-  if (schoolType.includes("초")) {
+  if (schoolType.includes("초등")) {
     return "elementary";
   }
-  if (schoolType.includes("고")) {
+  if (schoolType.includes("고등")) {
     return "high";
   }
   return "middle";

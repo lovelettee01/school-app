@@ -187,7 +187,7 @@ export default function KakaoMapPanel({ school }: Props) {
         >
           거리 계산
         </button>
-        {distance && <span className="text-sm text-[var(--text-muted)]">현재 위치 기준 {distance}</span>}
+        {distance && <span className="text-sm text-[var(--text-muted)]">현재 위치 기준(직선거리) {distance}</span>}
       </div>
       {travelTimes && (
         <div className="grid gap-2 text-xs text-[var(--text-muted)] sm:grid-cols-3">
