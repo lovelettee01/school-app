@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { SchoolSummary } from "@/lib/types";
 import { formatDistance, getKakaoRouteUrl, haversineDistanceMeters } from "@/lib/school";
@@ -41,11 +42,24 @@ type Props = {
   school: SchoolSummary;
 };
 
+function formatDuration(totalMinutes: number) {
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  if (hours <= 0) {
+    return `${mins}분`;
+  }
+  if (mins === 0) {
+    return `${hours}시간`;
+  }
+  return `${hours}시간 ${mins}분`;
+}
+
 export default function KakaoMapPanel({ school }: Props) {
   const kakaoKey = process.env.NEXT_PUBLIC_KAKAO_MAP_APP_KEY;
   const [error, setError] = useState(kakaoKey ? "" : "NEXT_PUBLIC_KAKAO_MAP_APP_KEY가 없어 지도를 표시할 수 없습니다.");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [distance, setDistance] = useState("");
+  const [travelTimes, setTravelTimes] = useState<{ walk: string; bike: string; car: string } | null>(null);
   const mapId = useMemo(() => `kakao-map-${school.schoolKey}`, [school.schoolKey]);
 
   useEffect(() => {
@@ -138,8 +152,19 @@ export default function KakaoMapPanel({ school }: Props) {
           coords.lng,
         );
         setDistance(formatDistance(meters));
+        const walkMin = Math.max(1, Math.round(meters / 67));
+        const bikeMin = Math.max(1, Math.round(meters / 250));
+        const carMin = Math.max(1, Math.round(meters / 500));
+        setTravelTimes({
+          walk: formatDuration(walkMin),
+          bike: formatDuration(bikeMin),
+          car: formatDuration(carMin),
+        });
       },
-      () => setError("위치 권한이 필요합니다."),
+      () => {
+        setError("위치 권한이 필요합니다.");
+        setTravelTimes(null);
+      },
       { enableHighAccuracy: true, timeout: 10000 },
     );
   };
@@ -164,6 +189,31 @@ export default function KakaoMapPanel({ school }: Props) {
         </button>
         {distance && <span className="text-sm text-[var(--text-muted)]">현재 위치 기준 {distance}</span>}
       </div>
+      {travelTimes && (
+        <div className="grid gap-2 text-xs text-[var(--text-muted)] sm:grid-cols-3">
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+            <p className="mb-1 inline-flex items-center gap-1 text-xs font-bold text-[var(--text)]">
+              <Image src="/icons/transport-walk.svg" alt="도보" width={14} height={14} />
+              도보
+            </p>
+            <p>약 {travelTimes.walk}</p>
+          </div>
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+            <p className="mb-1 inline-flex items-center gap-1 text-xs font-bold text-[var(--text)]">
+              <Image src="/icons/transport-bike.svg" alt="자전거" width={14} height={14} />
+              자전거
+            </p>
+            <p>약 {travelTimes.bike}</p>
+          </div>
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+            <p className="mb-1 inline-flex items-center gap-1 text-xs font-bold text-[var(--text)]">
+              <Image src="/icons/transport-car.svg" alt="차량" width={14} height={14} />
+              차량
+            </p>
+            <p>약 {travelTimes.car}</p>
+          </div>
+        </div>
+      )}
 
       <div id={mapId} className="h-72 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-muted)]" />
       {error && <p className="text-sm text-rose-500">{error}</p>}

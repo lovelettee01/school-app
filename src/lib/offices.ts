@@ -1,4 +1,10 @@
-﻿export const OFFICE_OPTIONS = [
+﻿/**
+ * 시도교육청 옵션 상수.
+ *
+ * 검색 화면 select 박스에서 그대로 렌더링하며,
+ * code 값은 NEIS `ATPT_OFCDC_SC_CODE` 파라미터로 사용된다.
+ */
+export const OFFICE_OPTIONS = [
   { code: "B10", name: "서울특별시교육청" },
   { code: "C10", name: "부산광역시교육청" },
   { code: "D10", name: "대구광역시교육청" },
