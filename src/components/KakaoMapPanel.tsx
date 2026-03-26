@@ -9,8 +9,17 @@ type KakaoGeocoderResult = { x: string; y: string };
 type KakaoMaps = {
   load: (callback: () => void) => void;
   LatLng: new (lat: number, lng: number) => unknown;
-  Map: new (container: HTMLElement, options: { center: unknown; level: number }) => { setCenter: (position: unknown) => void };
+  Map: new (container: HTMLElement, options: { center: unknown; level: number }) => {
+    setCenter: (position: unknown) => void;
+    addControl: (control: unknown, position: unknown) => void;
+  };
   Marker: new (options: { map: unknown; position: unknown }) => unknown;
+  MapTypeControl: new () => unknown;
+  ZoomControl: new () => unknown;
+  ControlPosition: {
+    TOPRIGHT: unknown;
+    RIGHT: unknown;
+  };
   services: {
     Geocoder: new () => {
       addressSearch: (
@@ -67,6 +76,10 @@ export default function KakaoMapPanel({ school }: Props) {
           center: fallbackCenter,
           level: 4,
         });
+        const mapTypeControl = new maps.MapTypeControl();
+        map.addControl(mapTypeControl, maps.ControlPosition.TOPRIGHT);
+        const zoomControl = new maps.ZoomControl();
+        map.addControl(zoomControl, maps.ControlPosition.RIGHT);
 
         const geocoder = new maps.services.Geocoder();
         geocoder.addressSearch(school.addressRoad || school.addressJibun, (result, status) => {

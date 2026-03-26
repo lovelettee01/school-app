@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { getThemeMode, setThemeMode } from "@/lib/storage";
 import { ThemeMode } from "@/lib/types";
@@ -21,6 +22,18 @@ export function applyTheme(mode: ThemeMode) {
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<ThemeMode>(() => getThemeMode());
+
+  const iconMap: Record<ThemeMode, string> = {
+    light: "/icons/theme-light.svg",
+    dark: "/icons/theme-dark.svg",
+    system: "/icons/theme-system.svg",
+  };
+
+  const labelMap: Record<ThemeMode, string> = {
+    light: "라이트 모드",
+    dark: "다크 모드",
+    system: "시스템 모드",
+  };
 
   useEffect(() => {
     applyTheme(theme);
@@ -48,13 +61,14 @@ export default function ThemeToggle() {
           key={mode}
           type="button"
           onClick={() => updateTheme(mode)}
-          className={`rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition ${
+          aria-label={labelMap[mode]}
+          className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
             theme === mode
               ? "bg-[var(--primary)] text-[var(--primary-contrast)]"
               : "text-[var(--text-muted)] hover:bg-[var(--surface-muted)]"
           }`}
         >
-          {mode}
+          <Image src={iconMap[mode]} alt={labelMap[mode]} width={18} height={18} />
         </button>
       ))}
     </div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AppHeader from "@/components/AppHeader";
 import EmptyState from "@/components/EmptyState";
@@ -20,6 +21,28 @@ type SchoolResponse = { schools: SchoolSummary[]; message?: string };
 type MealResponse = { meals: MealItem[]; message?: string };
 type TimetableResponse = { timetable: TimetableItem[]; message?: string };
 
+const ALLERGY_CODES = [
+  "1 난류",
+  "2 우유",
+  "3 메밀",
+  "4 땅콩",
+  "5 대두",
+  "6 밀",
+  "7 고등어",
+  "8 게",
+  "9 새우",
+  "10 돼지고기",
+  "11 복숭아",
+  "12 토마토",
+  "13 아황산류",
+  "14 호두",
+  "15 닭고기",
+  "16 쇠고기",
+  "17 오징어",
+  "18 조개류(굴, 전복, 홍합 포함)",
+  "19 잣",
+] as const;
+
 function renderInfo(label: string, value?: string) {
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--bg)] p-3">
@@ -27,6 +50,28 @@ function renderInfo(label: string, value?: string) {
       <p className="mt-1 text-sm font-medium">{value || "-"}</p>
     </div>
   );
+}
+
+function renderBreakLines(text?: string) {
+  if (!text) {
+    return "-";
+  }
+  const lines = text
+    .replace(/<br\s*\/?\s*>/gi, "\n")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length === 0) {
+    return "-";
+  }
+
+  return lines.map((line, idx) => (
+    <span key={`${line}-${idx}`}>
+      {line}
+      {idx < lines.length - 1 && <br />}
+    </span>
+  ));
 }
 
 export default function SchoolDetailPage() {
@@ -61,6 +106,8 @@ export default function SchoolDetailPage() {
   const [mealLoading, setMealLoading] = useState(false);
   const [mealError, setMealError] = useState("");
   const [meals, setMeals] = useState<MealItem[]>([]);
+  const [openMealKey, setOpenMealKey] = useState<string | null>(null);
+  const [allergyLayerOpen, setAllergyLayerOpen] = useState(false);
 
   const [timeLoading, setTimeLoading] = useState(false);
   const [timeError, setTimeError] = useState("");
@@ -135,6 +182,15 @@ export default function SchoolDetailPage() {
       void fetchMeals();
     }
   }, [activeTab, fetchMeals]);
+
+  useEffect(() => {
+    if (meals.length === 0) {
+      setOpenMealKey(null);
+      return;
+    }
+    const firstKey = `${meals[0].mealDate}-0`;
+    setOpenMealKey((prev) => prev ?? firstKey);
+  }, [meals]);
 
   const fetchTimetable = async () => {
     if (!school) return;
@@ -221,8 +277,14 @@ export default function SchoolDetailPage() {
                 <button
                   type="button"
                   onClick={() => toggleFavoriteSchool(school)}
-                  className="rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm font-semibold"
+                  className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm font-semibold"
                 >
+                  <Image
+                    src={favorite ? "/icons/favorite-on.svg" : "/icons/favorite-off.svg"}
+                    alt="즐겨찾기 상태"
+                    width={16}
+                    height={16}
+                  />
                   {favorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
                 </button>
               </div>
@@ -304,18 +366,65 @@ export default function SchoolDetailPage() {
                     <EmptyState message="해당 기간 급식 정보가 없습니다." />
                   )}
 
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2 text-xs text-[var(--text-muted)]">
+                    <button
+                      type="button"
+                      onClick={() => setAllergyLayerOpen((prev) => !prev)}
+                      className="font-bold text-[var(--text)] underline underline-offset-2"
+                    >
+                      !알러지정보 {allergyLayerOpen ? "숨기기" : "보기"}
+                    </button>
+                    {allergyLayerOpen && (
+                      <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+                        {ALLERGY_CODES.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
                   <div className="grid gap-3">
                     {meals.map((meal, index) => (
-                      <article key={`${meal.mealDate}-${index}`} className="rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-                        <p className="text-sm font-semibold">
-                          {meal.mealDate} · {meal.mealType}
-                        </p>
-                        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
-                          {meal.menuLines.map((line, lineIdx) => (
-                            <li key={`${meal.mealDate}-${lineIdx}`}>{line}</li>
-                          ))}
-                        </ul>
-                        <p className="mt-2 text-xs text-[var(--text-muted)]">열량: {meal.calorie || "-"}</p>
+                      <article key={`${meal.mealDate}-${index}`} className="rounded-xl border border-[var(--border)] bg-[var(--bg)]">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const key = `${meal.mealDate}-${index}`;
+                            setOpenMealKey((prev) => (prev === key ? null : key));
+                          }}
+                          className="flex w-full items-center justify-between px-4 py-3 text-left"
+                          aria-expanded={openMealKey === `${meal.mealDate}-${index}`}
+                        >
+                          <span className="text-sm font-semibold">
+                            {meal.mealDate} · {meal.mealType}
+                          </span>
+                          <span className="text-xs text-[var(--text-muted)]">
+                            {openMealKey === `${meal.mealDate}-${index}` ? "접기" : "펼치기"}
+                          </span>
+                        </button>
+
+                        {openMealKey === `${meal.mealDate}-${index}` && (
+                          <div className="border-t border-[var(--border)] px-4 py-3">
+                            <ul className="list-disc space-y-1 pl-5 text-sm">
+                              {meal.menuLines.map((line, lineIdx) => (
+                                <li key={`${meal.mealDate}-${lineIdx}`}>{line}</li>
+                              ))}
+                            </ul>
+                            <div className="mt-3 space-y-3 text-xs text-[var(--text-muted)]">
+                              <p>열량: {meal.calorie || "-"}</p>
+                              <div className="grid gap-3 md:grid-cols-2">
+                                <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2">
+                                  <p className="mb-1 text-xs font-bold text-[var(--text)]">원산지 정보</p>
+                                  <p>{renderBreakLines(meal.origin)}</p>
+                                </div>
+                                <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2">
+                                  <p className="mb-1 text-xs font-bold text-[var(--text)]">영양정보</p>
+                                  <p>{renderBreakLines(meal.nutrition)}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </article>
                     ))}
                   </div>

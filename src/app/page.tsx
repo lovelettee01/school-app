@@ -6,6 +6,7 @@ import AppHeader from "@/components/AppHeader";
 import EmptyState from "@/components/EmptyState";
 import ErrorState from "@/components/ErrorState";
 import LoadingState from "@/components/LoadingState";
+import Image from "next/image";
 import { fetchJson } from "@/lib/client-api";
 import { OFFICE_OPTIONS } from "@/lib/offices";
 import { SchoolSummary } from "@/lib/types";
@@ -184,8 +185,14 @@ export default function HomePage() {
                   <button
                     type="button"
                     onClick={() => toggleFavoriteSchool(school)}
-                    className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
+                    className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-3 py-2 text-sm"
                   >
+                    <Image
+                      src={isFavorite(school.schoolKey) ? "/icons/favorite-on.svg" : "/icons/favorite-off.svg"}
+                      alt="즐겨찾기 상태"
+                      width={16}
+                      height={16}
+                    />
                     {isFavorite(school.schoolKey) ? "즐겨찾기 해제" : "즐겨찾기 추가"}
                   </button>
                   <Link
