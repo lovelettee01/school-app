@@ -370,9 +370,9 @@ export default function SchoolDetailPage() {
                     <button
                       type="button"
                       onClick={() => setAllergyLayerOpen((prev) => !prev)}
-                      className="font-bold text-[var(--text)] underline underline-offset-2"
+                      className="font-bold text-[var(--text)] "
                     >
-                      !알러지정보 {allergyLayerOpen ? "숨기기" : "보기"}
+                      <span className="font-semibold">❗ 알러지정보</span> {allergyLayerOpen ? "▲" : "▼"}
                     </button>
                     {allergyLayerOpen && (
                       <ul className="mt-2 grid gap-1 sm:grid-cols-2">
@@ -399,7 +399,7 @@ export default function SchoolDetailPage() {
                             {meal.mealDate} · {meal.mealType}
                           </span>
                           <span className="text-xs text-[var(--text-muted)]">
-                            {openMealKey === `${meal.mealDate}-${index}` ? "접기" : "펼치기"}
+                            {openMealKey === `${meal.mealDate}-${index}` ? "닫기" : "보기"}
                           </span>
                         </button>
 
@@ -435,6 +435,26 @@ export default function SchoolDetailPage() {
                 <div className="space-y-4" role="tabpanel">
                   <div className="flex flex-wrap items-end gap-2">
                     <label className="text-sm">
+                      기준일
+                      <input
+                          type="date"
+                          value={baseDate}
+                          onChange={(e) => setBaseDate(e.target.value)}
+                          className="mt-1 block h-10 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3"
+                      />
+                    </label>
+                    <label className="text-sm">
+                      조회기준
+                      <select
+                          value={mode}
+                          onChange={(e) => setMode(e.target.value as "day" | "week")}
+                          className="mt-1 block h-10 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3"
+                      >
+                        <option value="day">일자</option>
+                        <option value="week">주간</option>
+                      </select>
+                    </label>
+                    <label className="text-sm">
                       학년
                       <select
                         value={grade}
@@ -460,26 +480,6 @@ export default function SchoolDetailPage() {
                             {i + 1}
                           </option>
                         ))}
-                      </select>
-                    </label>
-                    <label className="text-sm">
-                      기준일
-                      <input
-                        type="date"
-                        value={baseDate}
-                        onChange={(e) => setBaseDate(e.target.value)}
-                        className="mt-1 block h-10 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3"
-                      />
-                    </label>
-                    <label className="text-sm">
-                      조회기준
-                      <select
-                        value={mode}
-                        onChange={(e) => setMode(e.target.value as "day" | "week")}
-                        className="mt-1 block h-10 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3"
-                      >
-                        <option value="day">일자</option>
-                        <option value="week">주간</option>
                       </select>
                     </label>
                     <button
